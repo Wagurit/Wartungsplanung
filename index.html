@@ -2869,7 +2869,11 @@ async function sammelZuordnen() {
 // POOL — alles was noch eingeplant werden muss, nach Fälligkeits-KW
 // ═══════════════════════════════════════════════
 
-const POOL_WOCHEN = 16;      // so weit blickt der Pool in die Zukunft
+const POOL_WOCHEN = 52;      // so weit blickt der Pool in die Zukunft: ein Jahr
+// Leere Wochen werden nur im nahen Bereich mitgezeigt, damit nach KW 49 auch
+// wirklich KW 50 kommt. Weiter draußen wären 40 leere Zeilen nur Scrollweg,
+// dort erscheinen nur Wochen, in denen etwas ansteht.
+const POOL_LUECKEN = 10;
 const kwTotal = (kw, jahr) => jahr * 53 + kw;
 
 // Woche, in der ein Monatstermin einzuplanen ist.
@@ -2882,8 +2886,12 @@ function monatZuKW(ym) {
   const jetztIdx = jetzt.getFullYear()*12 + jetzt.getMonth();
   const zielIdx  = y*12 + (m-1);
   if (zielIdx === jetztIdx) return { kw:getISOWeek(jetzt), year:getISOYear(jetzt) };
-  const erster = new Date(y, m-1, 1);
-  return { kw:getISOWeek(erster), year:getISOYear(erster) };
+  // Anker ist der 4. des Monats, nicht der 1.: die Woche des 1. kann noch zum
+  // Vormonat gehören (der 1.1.2027 liegt in KW 53 von 2026, eine Januarwartung
+  // stünde dann unter einer Dezemberwoche). Die Woche des 4. liegt immer im
+  // gemeinten Monat.
+  const anker = new Date(y, m-1, 4);
+  return { kw:getISOWeek(anker), year:getISOYear(anker) };
 }
 
 function datumZuKW(ds) {
@@ -3310,8 +3318,10 @@ function renderPool() {
       kopf += `<span class="kw-datum">${dat}</span>`;
     }
 
-    // Leere Wochen bleiben sichtbar, nur blass und ohne Klappfunktion
+    // Leere Wochen bleiben im nahen Bereich sichtbar, nur blass und ohne
+    // Klappfunktion. Weiter draußen werden sie übersprungen.
     if (!liste.length) {
+      if (istAlt || tot > jetztTot + POOL_LUECKEN) continue;
       html += `<div class="kw-block"><div class="kw-block-head kw-leer ${klasse}">
         <span></span>${kopf}<span class="kw-anz">—</span></div></div>`;
       continue;
