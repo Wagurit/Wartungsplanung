@@ -1,0 +1,67 @@
+WARTUNGS PLANUNG — V3
+=====================
+Stand: 24.11.2026
+Supabase-Projekt: RKW-Service (loekjdetgppmxnwnwxkm)
+
+
+INHALT
+------
+index.html                            die App
+sw_wartungsplanung.js                 Service Worker (offline, Update-Banner)
+manifest.json                         für "Zum Startbildschirm hinzufügen"
+icon-192.png / icon-512.png           App-Symbol
+icon-180.png                          Symbol für iPhone und iPad
+icon-32.png                           Symbol für den Browser-Tab
+icon.svg                              Quelle des Symbols, falls es mal anders soll
+wartungsplanung_supabase_komplett.sql Tabellen, Spalten, Indizes und Rechte
+
+
+EINMALIG EINRICHTEN
+-------------------
+1. Supabase → SQL Editor → wartungsplanung_supabase_komplett.sql einfügen
+   und ausführen. Das Skript ist mehrfach ausführbar und ändert keine Daten.
+   Am Ende erscheint eine Liste mit neun Tabellen, jede mit rls = true
+   und genau einer Policy.
+
+2. Die Anmeldung ist dieselbe wie bei Meldungen und Lagerchemie: gleiches
+   Projekt, gleiche Nutzer, gleiches Passwort. Wer dort hineinkommt, kommt
+   auch hier hinein. Es muss niemand neu angelegt werden.
+
+3. Daten übernehmen (nur beim Umstieg von der lokalen Fassung):
+   In der lokalen App unter "Daten" den Knopf
+   "Stammdaten als SQL für Supabase" drücken und die erzeugte Datei
+   im SQL Editor ausführen.
+
+
+HOCHLADEN
+---------
+Alle Dateien in denselben Ordner legen — die Pfade im HTML sind relativ,
+es ist egal, in welchem Unterordner die App liegt. Weil die App
+index.html heisst, genuegt der Ordnerlink:
+  https://<deine-seite>/wartungsplanung_V3/
+
+Die beiden Textdateien (diese hier und die SQL) sind bei GitHub Pages
+oeffentlich abrufbar. Geheim ist daran nichts, aber wenn du den
+Tabellenaufbau nicht im Netz haben willst, leg die SQL eine Ebene
+hoeher statt in den ausgelieferten Ordner.
+
+Die App muss über https ausgeliefert werden, sonst läuft der Service
+Worker nicht und "Zum Startbildschirm hinzufügen" fehlt.
+
+
+BEI JEDER NEUEN VERSION
+-----------------------
+Drei Stellen hochzählen, sonst merken die Geräte das Update nicht:
+
+  1. sw_wartungsplanung.js   const CACHE = 'wartungsplanung-v3'
+  2. index.html              const APP_VERSION = 'V3'
+  3. index.html              <title> und der Zusatz neben dem Logo
+
+Die Versionsnummer steht oben im Kopf neben "Wartungs Planung", im
+Browser-Tab und auf dem Anmeldebildschirm. So sieht man auf jedem Gerät
+sofort, welcher Stand läuft.
+
+Nach dem Hochladen bekommen alle, die die App offen haben, unten ein
+Banner "Neue Version verfügbar" mit dem Knopf "Jetzt aktualisieren".
+Erst wenn jemand ihn drückt, wird umgestellt — niemand verliert mitten
+im Planen seinen Bildschirm.

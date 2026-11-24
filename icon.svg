@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#0369a1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Grundfläche -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Planblatt -->
+  <rect x="74" y="104" width="364" height="304" rx="26" fill="#ffffff"/>
+
+  <!-- Kopfleiste mit den fünf Wochentagen -->
+  <rect x="74" y="104" width="364" height="54" rx="26" fill="#1e3a5f"/>
+  <rect x="74" y="140" width="364" height="18" fill="#1e3a5f"/>
+  <g fill="#ffffff" opacity="0.92">
+    <rect x="104" y="124" width="38" height="12" rx="6"/>
+    <rect x="166" y="124" width="38" height="12" rx="6"/>
+    <rect x="228" y="124" width="38" height="12" rx="6"/>
+    <rect x="290" y="124" width="38" height="12" rx="6"/>
+    <rect x="352" y="124" width="38" height="12" rx="6"/>
+  </g>
+
+  <!-- Spaltentrenner -->
+  <g stroke="#e2e8f0" stroke-width="3">
+    <line x1="146" y1="170" x2="146" y2="396"/>
+    <line x1="219" y1="170" x2="219" y2="396"/>
+    <line x1="292" y1="170" x2="292" y2="396"/>
+    <line x1="365" y1="170" x2="365" y2="396"/>
+  </g>
+
+  <!-- Chips in den vier Typfarben: Wartung blau, BTB pink,
+       gerade Woche schwarz, Auftrag violett -->
+  <g>
+    <rect x="86"  y="180" width="48" height="34" rx="9" fill="#e0f2fe"/>
+    <rect x="86"  y="180" width="11" height="34" rx="5" fill="#0ea5e9"/>
+
+    <rect x="159" y="180" width="48" height="34" rx="9" fill="#fdf2f8"/>
+    <rect x="159" y="180" width="11" height="34" rx="5" fill="#ec4899"/>
+
+    <rect x="232" y="180" width="48" height="34" rx="9" fill="#f1f5f9"/>
+    <rect x="232" y="180" width="11" height="34" rx="5" fill="#0f172a"/>
+
+    <rect x="305" y="180" width="48" height="34" rx="9" fill="#f5f3ff"/>
+    <rect x="305" y="180" width="11" height="34" rx="5" fill="#8b5cf6"/>
+
+    <rect x="86"  y="230" width="48" height="34" rx="9" fill="#fdf2f8"/>
+    <rect x="86"  y="230" width="11" height="34" rx="5" fill="#ec4899"/>
+
+    <rect x="232" y="230" width="48" height="34" rx="9" fill="#e0f2fe"/>
+    <rect x="232" y="230" width="11" height="34" rx="5" fill="#0ea5e9"/>
+
+    <rect x="378" y="230" width="48" height="34" rx="9" fill="#fffbeb"/>
+    <rect x="378" y="230" width="11" height="34" rx="5" fill="#d97706"/>
+
+    <rect x="159" y="280" width="48" height="34" rx="9" fill="#f1f5f9"/>
+    <rect x="159" y="280" width="11" height="34" rx="5" fill="#0f172a"/>
+
+    <rect x="305" y="280" width="48" height="34" rx="9" fill="#e0f2fe"/>
+    <rect x="305" y="280" width="11" height="34" rx="5" fill="#0ea5e9"/>
+  </g>
+
+  <!-- Erledigt-Haken, hervorgehoben -->
+  <g>
+    <rect x="364" y="318" width="108" height="86" rx="22" fill="#15803d"/>
+    <path d="M389 362 l20 20 l38 -42" fill="none" stroke="#ffffff"
+          stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
