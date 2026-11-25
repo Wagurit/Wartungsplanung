@@ -4,7 +4,7 @@
 //
 // WICHTIG: Bei jedem Deploy die Zahl hochzählen. Nur dann merken die
 // Geräte, dass es etwas Neues gibt, und zeigen das Update-Banner.
-const CACHE = 'wartungsplanung-v3';
+const CACHE = 'wartungsplanung-v4';
 
 const ASSETS = [
   './',

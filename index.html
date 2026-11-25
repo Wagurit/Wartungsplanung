@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0284c7">
-<title>Wartungs Planung V3</title>
+<title>Wartungs Planung V4</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -307,6 +307,7 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 .pool-chip.c-kontrolle { border-left-color: #d97706; }
 .pool-chip.c-kombi   { border-left: 4px solid #ec4899; box-shadow: inset 5px 0 0 -1px #0ea5e9; background: #fffafc; }
 .pool-chip.c-kombig  { border-left: 4px solid #0f172a; box-shadow: inset 5px 0 0 -1px #0ea5e9; background: #f8fafc; }
+.pool-chip.c-offen   { border-left: 5px solid #dc2626; background: #fef2f2; }
 .pool-chip.c-kombik  { border-left: 4px solid #d97706; box-shadow: inset 5px 0 0 -1px #0ea5e9; background: #fffdf5; }
 .pt-kombig  { background: linear-gradient(90deg,#e2e8f0 0%,#e2e8f0 50%,#e0f2fe 50%,#e0f2fe 100%); color: #0f172a; border: 1px solid #94a3b8; }
 .pool-chip.c-rot     { border-left-color: var(--err); background: #fef2f2; }
@@ -418,6 +419,8 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 .wp-item.c-kontrolle { background: #fffbeb; border-left-color: #d97706; }
 .btb-gesperrt { font-family:'Barlow',sans-serif; font-size:11.5px; color:#92400e;
   background:#fffbeb; border:1px dashed #fcd34d; border-radius:6px; padding:6px 8px; }
+.btn-chip.btn-auftr { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
+.btn-chip.btn-auftr.aus { background:#fef2f2; border-color:#fecaca; color:#b91c1c; font-weight:800; }
 .wp-item.c-notiz { background: #fefce8; border-left-color: #a16207; border-style: dashed; }
 .wp-item.c-notiz .wp-item-name { font-weight: 700; color: #713f12; white-space: normal; }
 .wp-notiz-plus { display: block; width: 100%; margin-top: 4px; padding: 3px 6px; border-radius: 5px;
@@ -605,7 +608,7 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 const LOCAL_MODE = true;
 const SB_URL = 'https://loekjdetgppmxnwnwxkm.supabase.co';
 const SB_KEY = 'sb_publishable_tvSCErTdFX0L1HKb2h9HPw_7Xid0a0A';
-const APP_VERSION = 'V3';
+const APP_VERSION = 'V4';
 const TECHNIKER = ['IS','AG','RG','BG','AS','JN','BT'];
 const PLAN_TECH = ['RG','AG','IS']; // Nur diese können Aufgaben zugewiesen bekommen
 const DAYS = ['Mo','Di','Mi','Do','Fr'];
@@ -627,7 +630,7 @@ let _toastTimer = null;
   <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:#0369a1;margin-bottom:4px;">
       Wartungs<span style="font-weight:400;color:#7dd3fc">Planung</span>
-      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V3</span>
+      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V4</span>
     </div>
     <div style="font-family:'Barlow',sans-serif;font-size:13px;color:#64748b;margin-bottom:22px;">Bitte anmelden um fortzufahren</div>
     <div style="margin-bottom:12px;">
@@ -649,7 +652,7 @@ let _toastTimer = null;
 
 <!-- HEADER -->
 <div class="header">
-  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V3</span></div>
+  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V4</span></div>
   <span id="headerUser" class="kuerzel-badge kb-IS" style="display:none"></span>
   <button class="header-btn" onclick="doLogout()">Logout</button>
   <button class="header-btn" onclick="openModal('modalKunde')">+ Kunde</button>
@@ -660,12 +663,11 @@ let _toastTimer = null;
 <!-- TABS -->
 <div class="tabs" id="tabBar">
   <button class="tab active" onclick="setTab('wochenplan',this)">Wochenplan</button>
-  <button class="tab" onclick="setTab('alle',this)">Alle Wartungen</button>
+  <button class="tab" onclick="setTab('alle',this)">Kunden &amp; Wartungen</button>
   <button class="tab" onclick="setTab('auftraege',this)">
     Aufträge <span class="tab-badge hidden" id="badge-auftraege">0</span>
   </button>
   <button class="tab" onclick="setTab('touren',this)">Touren</button>
-  <button class="tab" onclick="setTab('kunden',this)">Kunden</button>
 </div>
 
 <!-- SUCHE (Alle Wartungen, Aufträge, Touren, Kunden) -->
@@ -751,10 +753,6 @@ let _toastTimer = null;
         <tbody id="wpTechBody"></tbody>
       </table></div>
     </div>
-  </div>
-  <div class="view" id="view-kunden">
-    <div class="sl">Kundenverwaltung</div>
-    <div id="grid-kunden"><div class="loading"><div class="spinner"></div>Lade…</div></div>
   </div>
 </div>
 
@@ -1609,7 +1607,7 @@ function zeigeTreffer() {
   const el = document.getElementById('sucheTreffer'); if (!el) return;
   if (!suchText()) { el.textContent = ''; return; }
   const zaehler = { alle:'#grid-alle .chip', auftraege:'#grid-auftraege .chip',
-                    touren:'#grid-touren .tour-stop', kunden:'#grid-kunden .kunden-card' };
+                    touren:'#grid-touren .tour-stop' };
   const sel = zaehler[currentTab]; if (!sel) { el.textContent=''; return; }
   const n = document.querySelectorAll(sel).length;
   el.textContent = n === 1 ? '1 Treffer' : n + ' Treffer';
@@ -1625,19 +1623,24 @@ function emptyHTML(icon, h, p) {
   return `<div class="empty"><div class="empty-icon">${icon}</div><h3>${h}</h3><p>${p}</p></div>`;
 }
 
+// Dieser Tab zeigt den Kundenstamm: jeder Kunde hat hier dauerhaft seinen
+// Chip, auch wenn seine Wartung gerade im Wochenplan steht. Vorher fiel er
+// in dem Moment aus der Liste und war weder zu finden noch zu bearbeiten.
 function renderAlleWartungen() {
   const el = document.getElementById('grid-alle');
   let chips = [];
 
-  // ── Reine Wartungschips (Kunden OHNE BTB) ──
   const btbCustIds = new Set(S.btbs.map(b=>b.customer_id));
-  for (const sched of S.schedules) {
-    // Wenn Kunde BTB hat → als Kombichip weiter unten
-    if (btbCustIds.has(sched.customer_id)) continue;
+  for (const cust of S.customers) {
+    if (btbCustIds.has(cust.id)) continue;          // BTB-Kunden weiter unten
+    if (!passtZurSuche(cust.name, cust.plz, cust.notes, cust.kundennummer)) continue;
+    const sched = S.schedules.find(sc => sc.customer_id === cust.id) || null;
+    if (!sched) {                                    // Kunde ganz ohne Plan
+      chips.push({ type:'nurkunde', cust, status:{color:'gray', label:'Kein Wartungsplan'} });
+      continue;
+    }
     const rec = getOpenRec(sched.id);
-    if (rec?.status==='planned') continue;
     const done = getLastDone(sched.id);
-    const cust = getCust(sched.customer_id);
     const status = done ? getWartungStatus(done.completed_date, sched) : getMonthStatus(sched.first_due_month);
     if (!matchFilters(status, cust)) continue;
     if (activeFilters.month && !isThisMonth(status, null)) continue;
@@ -1652,6 +1655,7 @@ function renderAlleWartungen() {
   }
   for (const [custId, btbList] of Object.entries(btbByCust)) {
     const cust = getCust(custId);
+    if (!passtZurSuche(cust.name, cust.plz, cust.notes, cust.kundennummer)) continue;
     const wartSched = S.schedules.find(s=>s.customer_id===custId)||null;
     // Dominant BTB status (worst color of all BTBs for this customer)
     const btbStatuses = btbList.map(b=>getBTBStatus(b));
@@ -1663,9 +1667,15 @@ function renderAlleWartungen() {
 
   chips.sort((a,b)=>(STATUS_ORDER[a.status.color]||9)-(STATUS_ORDER[b.status.color]||9));
   document.getElementById('cnt-alle').textContent = chips.length ? '— '+chips.length : '';
-  if (!chips.length) { el.innerHTML=emptyHTML('📋','Keine Wartungen','Kunden anlegen oder Filter anpassen.'); return; }
+  if (!chips.length) { el.innerHTML=emptyHTML('🔍','Kein Treffer','Kein Kunde passt zu Suche und Filtern.'); return; }
   el.innerHTML = chips.map((chip)=>{
     if (chip.type==='btb+wartung') return buildKombiChip(chip);
+    if (chip.type==='nurkunde') return chipHTML({
+      color:'gray', name: chip.cust.name||'Unbekannt', type:'wartung',
+      tags: kundenTags(chip.cust).concat(['<span class="chip-tag" style="color:var(--warn)">⚠ Kein Wartungsplan</span>']),
+      statusLabel: 'Kein Wartungsplan hinterlegt',
+      actions: kundenAktionen(chip.cust)
+    });
     const {sched,rec,done,cust,status} = chip;
     const comms = getComments('maintenance', rec?.id||sched.id);
     const arch  = getComments('maintenance', rec?.id||sched.id, true);
@@ -1679,16 +1689,30 @@ function renderAlleWartungen() {
         {lbl:'Nächste fällig',val:fmtMonth(status.nextDate),cls:['red','orange'].includes(status.color)?'urgent':status.color==='yellow'?'soon':''},
         (()=>{const o=done?optimaleKW(done.completed_date, sched.frequency_per_year):null;
               return o?{lbl:'Rhythmus hält bei',val:'KW '+o.kw}:null;})()].filter(Boolean),
-      statusLabel: status.label,
+      statusLabel: (rec?.status==='planned' ? '📅 Im Wochenplan — ' : '') + status.label,
       comments: comms, archived: arch, refType:'maintenance', refId,
-      actions: `<button class="btn-chip btn-plan" onclick="openPlanModal('${sched.id}','${esc(cust.name||'')}')">📅 Einplanen</button>
-        <button class="btn-chip btn-note" onclick="openKommentar('maintenance','${refId}')">💬 Notiz</button>
-        <button class="btn-chip btn-btb" onclick="openAddBTBModal('${cust.id}')">+ Betriebstagebuch</button>
-        <button class="btn-chip btn-anm${cust.anmeldung_noetig?' an':''}" onclick="toggleAnmeldung('${cust.id}')" title="Muss beim Kunden angemeldet werden?">${cust.anmeldung_noetig?'🔔 Anmeldung nötig':'🔔 Anmeldung'}</button>
-        <button class="btn-chip btn-winter${cust.winterbetrieb?' an':''}" onclick="toggleWinter('${cust.id}')" title="Kunde ruht im Winter">${cust.winterbetrieb?'❄ Winterbetrieb AN':'❄ Winterbetrieb'}</button>
-        <button class="btn-chip btn-edit" onclick="openEditKunde('${cust.id}')">✏️ Bearbeiten</button>`
+      actions: (rec?.status==='planned'
+          ? `<span class="btn-chip" style="background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;cursor:default;">📅 steht im Plan${rec.planned_kw?' · KW '+String(rec.planned_kw).split('-W')[1]:''}${rec.assigned_technician?' · '+rec.assigned_technician:''}</span>`
+          : `<button class="btn-chip btn-plan" onclick="openPlanModal('${sched.id}','${esc(cust.name||'')}')">📅 Einplanen</button>`)
+        + beauftragtBtn('wp_maintenance_schedules', sched, 'Wartung')
+        + `<button class="btn-chip btn-note" onclick="openKommentar('maintenance','${refId}')">💬 Notiz</button>`
+        + kundenAktionen(cust)
     });
   }).join('');
+}
+
+// Angaben und Knöpfe, die an jedem Kundenchip hängen
+function kundenTags(cust) {
+  return [cust.kundennummer && `#${esc(cust.kundennummer)}`,
+          cust.plz && `📍 ${esc(cust.plz)}`,
+          cust.region_nr && `🗺 R${esc(cust.region_nr)}`].filter(Boolean);
+}
+function kundenAktionen(cust) {
+  return `<button class="btn-chip btn-btb" onclick="openAddBTBModal('${cust.id}')">+ Betriebstagebuch</button>
+    <button class="btn-chip btn-anm${cust.anmeldung_noetig?' an':''}" onclick="toggleAnmeldung('${cust.id}')" title="Muss beim Kunden angemeldet werden?">${cust.anmeldung_noetig?'🔔 Anmeldung nötig':'🔔 Anmeldung'}</button>
+    <button class="btn-chip btn-winter${cust.winterbetrieb?' an':''}" onclick="toggleWinter('${cust.id}')" title="Kunde ruht im Winter">${cust.winterbetrieb?'❄ Winterbetrieb AN':'❄ Winterbetrieb'}</button>
+    <button class="btn-chip btn-edit" onclick="openEditKunde('${cust.id}')">✏️ Bearbeiten</button>
+    <button class="btn-chip btn-del" onclick="deleteKunde('${cust.id}')">🗑 Löschen</button>`;
 }
 
 function buildKombiChip({btbList, btbStatuses, domStatus, wartSched, cust}) {
@@ -1740,6 +1764,7 @@ function buildKombiChip({btbList, btbStatuses, domStatus, wartSched, cust}) {
                  Wochenplan auf BTB umstellen statt hier zusätzlich einzuplanen.</div>`
             : `<button class="btn-chip btn-plan" onclick="openPlanBTBModal('${btb.id}','${esc(cust.name||'')}',${i})">📅 BTB einplanen</button>`)
         }
+        ${beauftragtBtn('wp_btb_schedules', btb, 'BTB')}
         <button class="btn-chip btn-tour" onclick="openTourZuordnen('${btb.id}')">🚐 ${tour?'Tour ändern':'Tour'}</button>
         <button class="btn-chip btn-note" onclick="openKommentar('btb','${btb.id}')">💬</button>
         <button class="btn-chip btn-del" onclick="deleteBTB('${btb.id}')">🗑</button>
@@ -1758,8 +1783,7 @@ function buildKombiChip({btbList, btbStatuses, domStatus, wartSched, cust}) {
         <span class="chip-type" style="background:#fdf2f8;color:#9d174d;border:1px solid #fbcfe8;font-size:10px;padding:2px 8px;border-radius:4px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;">BTB${wartSched?'+W':''}</span>
       </div>
       <div class="chip-tags">
-        ${cust.plz?`<span class="chip-tag">📍 ${esc(cust.plz)}</span>`:''}
-        ${cust.region_nr?`<span class="chip-tag">🗺 R${esc(cust.region_nr)}</span>`:''}
+        ${kundenTags(cust).map(t=>`<span class="chip-tag">${t}</span>`).join('')}
         ${wartSched?`<span class="chip-tag">🔄 ${wartSched.frequency_per_year}×/J Wartung</span>`:''}
       </div>
       ${btbHTML}
@@ -1772,6 +1796,7 @@ function buildKombiChip({btbList, btbStatuses, domStatus, wartSched, cust}) {
           : `<button class="btn-chip ${wartBtnClass}" style="width:100%;justify-content:center;display:flex;" onclick="openPlanWartungFromKombi('${wartSched.id}','${esc(cust.name||'')}')">
                ${wartBtnLabel}
              </button>`}
+        <div style="margin-top:5px;">${beauftragtBtn('wp_maintenance_schedules', wartSched, 'Wartung')}</div>
       </div>` : `
       <hr class="btb-divider">
       <button class="btn-chip btn-edit" onclick="openAddWartungToKunde('${cust.id}')">+ Wartungsplan anlegen</button>
@@ -1783,6 +1808,7 @@ function buildKombiChip({btbList, btbStatuses, domStatus, wartSched, cust}) {
       <button class="btn-chip btn-winter${cust.winterbetrieb?' an':''}" onclick="toggleWinter('${cust.id}')" title="Kunde ruht im Winter">${cust.winterbetrieb?'❄ Winterbetrieb AN':'❄ Winterbetrieb'}</button>
       <button class="btn-chip btn-edit" onclick="openEditKunde('${cust.id}')">✏️ Kunde</button>
       <button class="btn-chip btn-btb" onclick="openAddBTBModal('${cust.id}')">+ Weiteres Betriebstagebuch</button>
+      <button class="btn-chip btn-del" onclick="deleteKunde('${cust.id}')">🗑 Kunde löschen</button>
     </div>
   </div>`;
 }
@@ -1825,7 +1851,7 @@ function buildJobChip(job, cust, status, inGeplant) {
   });
 }
 
-function chipHTML({color, name, type, tags, dates, statusLabel, assign, comments, archived, refType, refId, actions}) {
+function chipHTML({color, name, type, tags=[], dates=[], statusLabel='', assign, comments, archived, refType, refId, actions=''}) {
   const spClass = `sp-${color.replace('-alarm','')}`;
   const assignHTML = assign ? `<div class="chip-assign">
     ${assign.kw?`<span class="kw-pill">KW ${assign.kw.split('-W')[1]||assign.kw}</span>`:''}
@@ -1864,37 +1890,9 @@ function buildCommentsHTML(comms, arch, refType, refId) {
   </div>`;
 }
 
-function renderKunden() {
-  const el = document.getElementById('grid-kunden');
-  if (!el) return;
-  if (!S.customers.length) { el.innerHTML=emptyHTML('👥','Keine Kunden','Ersten Kunden anlegen.'); return; }
-  const liste = S.customers.filter(c => passtZurSuche(c.name, c.plz, c.notes));
-  if (!liste.length) { el.innerHTML=emptyHTML('🔍','Kein Treffer','Kein Kunde passt zur Suche.'); return; }
-  el.innerHTML = liste.map(c=>{
-    const sched = S.schedules.find(s=>s.customer_id===c.id);
-    const hasBTB = S.btbs.some(b=>b.customer_id===c.id);
-    return `<div class="kunden-card">
-      <div class="kunden-card-head">
-        <div class="kunden-name">${esc(c.name)}</div>
-        <div style="display:flex;gap:5px;">
-          <button class="btn-chip btn-plan" onclick="openAddBTBModal('${c.id}')" title="BTB anlegen" style="background:#fdf2f8;border-color:#fbcfe8;color:#be185d;">
-            ${hasBTB ? '+ BTB' : '+ BTB anlegen'}
-          </button>
-          <button class="btn-chip btn-edit" onclick="openEditKunde('${c.id}')">✏️</button>
-          <button class="btn-chip btn-del" onclick="deleteKunde('${c.id}')">🗑</button>
-        </div>
-      </div>
-      <div class="chip-tags" style="margin-top:6px;">
-        ${c.plz?`<span class="chip-tag">📍 ${esc(c.plz)}</span>`:''}
-        ${c.region_nr?`<span class="chip-tag">🗺 Region ${esc(c.region_nr)}</span>`:''}
-        ${sched?`<span class="chip-tag">🔄 ${sched.frequency_per_year}×/Jahr</span>`:'<span class="chip-tag" style="color:var(--warn)">⚠ Kein Wartungsplan</span>'}
-      </div>
-      ${hasBTB ? S.btbs.filter(b=>b.customer_id===c.id).map(b=>btbRhythmusTag(b)).join(' ') : ''}
-      </div>
-      ${c.notes?`<div style="font-size:12px;color:var(--muted);margin-top:6px;font-family:'Barlow',sans-serif;">${esc(c.notes)}</div>`:''}
-    </div>`;
-  }).join('');
-}
+// Der eigene Kundentab ist im Tab "Kunden & Wartungen" aufgegangen.
+// Der Name bleibt, weil er an mehreren Stellen aufgerufen wird.
+function renderKunden() { renderAlleWartungen(); }
 
 function renderWochenplan() {
   const kw = document.getElementById('wpKW').value; if (!kw) return;
@@ -1924,6 +1922,7 @@ function renderWochenplan() {
         // Steht beim Kunden noch ein BTB offen, trägt der Chip beide Farben:
         // pink/schwarz für das BTB, blau für die Wartung. Lesbar ist nur das,
         // was gerade ausgewählt ist — antippen stellt um.
+        offen: sched ? !istBeauftragt(sched) : false,
         kombiFarbe: (()=>{ if (rec.status!=='planned'||!sched) return null;
           const pk=String(rec.planned_kw||'');
           const k=pk.includes('-W')?parseInt(pk.split('-W')[1]):null;
@@ -1960,6 +1959,7 @@ function renderWochenplan() {
         typKlasse: btb.interval_weeks===4 ? 'kontrolle' : (gerade?'btbg':'btb'),
         art:'btb', id:rec.id, ergebnis:rec.status, so:rec.sort_order ?? 9999,
         anmNoetig:!!cust.anmeldung_noetig, angemeldet:!!rec.angemeldet,
+        offen: !istBeauftragt(btb),
         kombiFarbe: (rec.status==='planned'
                      && offeneWartung(btb.customer_id, rec.planned_kw, rec.planned_year))
                     ? btbStreifen(btb) : null,
@@ -2010,11 +2010,15 @@ function wpItemHTML(it) {
                    it.ergebnis==='done' ? 'ist-done' : it.ergebnis==='missed' ? 'ist-missed' : ''].filter(Boolean).join(' ');
   const badge = it.ergebnis==='done'   ? '<span class="wp-ergebnis wp-erg-done">ERLEDIGT</span>'
               : it.ergebnis==='missed' ? '<span class="wp-ergebnis wp-erg-missed">NICHT GESCHAFFT</span>' : '';
-  // Zweifarbiger Streifen = beim Kunden steht beides an, der Chip ist umstellbar
-  const stil = it.kombiFarbe
-    ? `cursor:pointer;border-left:4px solid ${esc(it.kombiFarbe)};box-shadow:inset 5px 0 0 -1px #0ea5e9;`
-    : 'cursor:pointer;';
-  const tip = it.kombiFarbe ? 'BTB und Wartung stehen an — antippen zum Umstellen'
+  // Nicht beauftragt schlägt alles: der ganze Streifen wird rot. Sonst zeigt
+  // ein zweifarbiger Streifen, dass beim Kunden beides ansteht.
+  const stil = it.offen
+    ? 'cursor:pointer;border-left:5px solid #dc2626;'
+    : (it.kombiFarbe
+        ? `cursor:pointer;border-left:4px solid ${esc(it.kombiFarbe)};box-shadow:inset 5px 0 0 -1px #0ea5e9;`
+        : 'cursor:pointer;');
+  const tip = it.offen ? 'Noch nicht beauftragt — im Kundentab freigeben'
+            : it.kombiFarbe ? 'BTB und Wartung stehen an — antippen zum Umstellen'
             : (fertig ? 'Antippen zum Ansehen' : 'Ziehen oder antippen');
   return `<div class="${klassen}" ${drag} ${klick} style="${stil}"
        ondragover="itemDragOver(event,'${it.art}','${it.id}')"
@@ -2934,6 +2938,35 @@ function wartungGeplantIn(customerId) {
   return best;
 }
 
+// Eine Wartung wird jeweils für ein Jahr beauftragt. Leer heißt beauftragt —
+// so ist nichts rot, bis jemand es bewusst ausschaltet. Steht ein Jahr drin,
+// das vorbei ist, gilt der Auftrag als abgelaufen.
+function istBeauftragt(plan) {
+  if (!plan || plan.beauftragt_jahr == null) return true;
+  return plan.beauftragt_jahr >= getISOYear(today());
+}
+
+async function toggleBeauftragt(tabelle, id) {
+  const liste = tabelle === 'wp_btb_schedules' ? S.btbs : S.schedules;
+  const plan  = liste.find(x => x.id === id); if (!plan) return;
+  const neu   = istBeauftragt(plan) ? 0 : getISOYear(today());
+  try {
+    await apiFetch(tabelle+'?id=eq.'+id, 'PATCH', { beauftragt_jahr: neu });
+    await loadAll(); renderPlanAlles();
+    toast(neu ? '✅ Beauftragt für ' + neu : '⛔ Als nicht beauftragt markiert');
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+// Knopf für den Kundenchip
+function beauftragtBtn(tabelle, plan, was) {
+  const an = istBeauftragt(plan);
+  return `<button class="btn-chip btn-auftr${an?'':' aus'}"
+    onclick="toggleBeauftragt('${tabelle}','${plan.id}')"
+    title="${an ? was+' ist beauftragt — antippen macht den Streifen im Wochenplan rot'
+                : was+' ist NICHT beauftragt — im Wochenplan rot markiert'}">
+    ${an ? '📝 beauftragt' : '⛔ nicht beauftragt'}</button>`;
+}
+
 // Farbe des BTB-Anteils: monatliche Kontrolle amber, sonst nach Rhythmus
 // gerade = schwarz / ungerade = pink. Die Farbe hängt am Plan, nicht an der
 // Woche, in der der Chip gerade steht.
@@ -3087,7 +3120,8 @@ function poolItems() {
     const opt = done ? optimaleKW(done.completed_date, sched.frequency_per_year) : null;
     items.push({ art:'sched', id:sched.id, name:cust.name||'?', nebenBTB:false,
       optKW: opt ? opt.kw : null,
-      typ: nr ? 'Wartung '+nr.text : 'Wartung', typKlasse:'wartung',
+      typ: (istBeauftragt(sched)?'':'⛔ ') + (nr ? 'Wartung '+nr.text : 'Wartung'),
+      typKlasse: istBeauftragt(sched) ? 'wartung' : 'offen',
       // Bei BTB-Kunden zeigt der Chip die BTB-Woche, in der er mitläuft,
       // nicht die rechnerisch optimale der Wartung allein.
       sub: fmtMonth(st.nextDate) + (amBTB ? ' · KW '+ziel.kw+' (mit BTB)' : (opt ? ' · KW '+opt.kw : '')),
@@ -3114,7 +3148,7 @@ function poolItems() {
     const gerade = btb.parity === 'even';
     const tourB  = btb.tour_id ? getTour(btb.tour_id) : null;
     items.push({ art:'btbsched', id:btb.id, name:cust.name||'?',
-      typ: (btb.interval_weeks===4 ? 'Kontrolle' : 'BTB') + btbLabel(btb),
+      typ: (istBeauftragt(btb)?'':'⛔ ') + (btb.interval_weeks===4 ? 'Kontrolle' : 'BTB') + btbLabel(btb),
       typKlasse: btb.interval_weeks===4 ? 'kontrolle' : (gerade ? 'btbg' : 'btb'), gerade,
       btbLabelTxt: btbLabel(btb),
       // Die monatliche Kontrolle liest sich wie ein Wartungschip: Zielmonat und
@@ -4703,7 +4737,6 @@ function setTab(name, el) {
   if (name==='wochenplan') renderWochenplan();
   if (name==='auftraege') fillAuftragDropdown();
   if (name==='touren') renderTouren();
-  if (name==='kunden') renderKunden();
   setTimeout(zeigeTreffer, 0);
   if (name==='wochenplan') setTimeout(poolHoeheAnpassen, 0);
 }
