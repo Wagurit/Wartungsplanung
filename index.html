@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0284c7">
-<title>Wartungs Planung V6</title>
+<title>Wartungs Planung V7</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -624,7 +624,7 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 const LOCAL_MODE = true;
 const SB_URL = 'https://loekjdetgppmxnwnwxkm.supabase.co';
 const SB_KEY = 'sb_publishable_tvSCErTdFX0L1HKb2h9HPw_7Xid0a0A';
-const APP_VERSION = 'V6';
+const APP_VERSION = 'V7';
 const TECHNIKER = ['IS','AG','RG','BG','AS','JN','BT'];
 const PLAN_TECH = ['RG','AG','IS']; // Nur diese können Aufgaben zugewiesen bekommen
 const DAYS = ['Mo','Di','Mi','Do','Fr'];
@@ -646,7 +646,7 @@ let _toastTimer = null;
   <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:#0369a1;margin-bottom:4px;">
       Wartungs<span style="font-weight:400;color:#7dd3fc">Planung</span>
-      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V6</span>
+      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V7</span>
     </div>
     <div style="font-family:'Barlow',sans-serif;font-size:13px;color:#64748b;margin-bottom:22px;">Bitte anmelden um fortzufahren</div>
     <div style="margin-bottom:12px;">
@@ -668,7 +668,7 @@ let _toastTimer = null;
 
 <!-- HEADER -->
 <div class="header">
-  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V6</span></div>
+  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V7</span></div>
   <span id="headerUser" class="kuerzel-badge kb-IS" style="display:none"></span>
   <button class="header-btn" onclick="doLogout()">Logout</button>
   <button class="header-btn" onclick="openModal('modalKunde')">+ Kunde</button>
@@ -1077,6 +1077,9 @@ let _toastTimer = null;
       <div class="f"><label>Tag</label>
         <select id="planJobDay"><option value="">—</option><option>Mo</option><option>Di</option><option>Mi</option><option>Do</option><option>Fr</option></select>
       </div>
+    </div>
+    <div class="f"><label>Kalenderwoche</label>
+      <input type="week" id="planJobKW" class="kw-sel" style="width:100%">
     </div>
     <button class="btn-save" onclick="savePlanJob()">📅 Einplanen</button>
   </div>
@@ -1965,8 +1968,10 @@ function renderWochenplan() {
           return b ? btbStreifen(b) : null; })(),
         note:getComments('maintenance', rec.id).map(c=>c.text).join(' · ') });
   }
+  const jKw = parseInt(kw.split('-W')[1]), jJahr = parseInt(kw.split('-W')[0]);
   for (const job of S.jobs) {
     if (!job.assigned_technician||!job.assigned_day) continue;
+    if (!jobInWoche(job, jKw, jJahr)) continue;   // gilt nur für seine eine Woche
     if (grid[job.assigned_technician]?.[job.assigned_day])
       grid[job.assigned_technician][job.assigned_day].push({
         name:getCust(job.customer_id).name||job.title||'?',
@@ -2421,6 +2426,12 @@ function openPlanJobModal(jobId, title) {
   document.getElementById('planJobName').textContent=title;
   document.getElementById('planJobTech').value=job?.assigned_technician||'';
   document.getElementById('planJobDay').value=job?.assigned_day||'';
+  // Vorschlag: die Woche, in der er schon steht, sonst sein eigener Termin,
+  // sonst die Woche, die im Wochenplan gerade offen ist.
+  const w = jobWoche(job);
+  document.getElementById('planJobKW').value = w
+    ? w.jahr+'-W'+String(w.kw).padStart(2,'0')
+    : (document.getElementById('wpKW')?.value || getISOWeekString(today()));
   openModal('modalPlanJob');
 }
 
@@ -2428,8 +2439,12 @@ async function savePlanJob() {
   const jobId=document.getElementById('planJobId').value;
   const tech=document.getElementById('planJobTech').value;
   const day=document.getElementById('planJobDay').value;
+  const kwStr=document.getElementById('planJobKW').value;
+  if (!kwStr) { toast('❌ Bitte eine Kalenderwoche wählen'); return; }
   try {
-    await apiFetch(`wp_one_time_jobs?id=eq.${jobId}`,'PATCH',{assigned_technician:tech||null,assigned_day:day||null,status:'planned'});
+    await apiFetch(`wp_one_time_jobs?id=eq.${jobId}`,'PATCH',
+      { assigned_technician:tech||null, assigned_day:day||null, status:'planned',
+        planned_kw:parseInt(kwStr.split('-W')[1]), planned_year:parseInt(kwStr.split('-W')[0]) });
     closeModal('modalPlanJob'); await loadAll(); renderAll(); renderWochenplan();
     toast('✅ Auftrag eingeplant');
   } catch(e) { toast('❌ '+e.message); }
@@ -3484,7 +3499,8 @@ async function poolDrop(ev) {
         { planned_kw:null, assigned_technician:null, assigned_day:null, status:'open' });
     } else if (art === 'job') {
       await apiFetch('wp_one_time_jobs?id=eq.'+id,'PATCH',
-        { assigned_technician:null, assigned_day:null, status:'open' });
+        { assigned_technician:null, assigned_day:null, status:'open',
+          planned_kw:null, planned_year:null });
     } else if (art === 'tour') {
       const [tourId, aKw, aYear, aTech, aDay] = id.split('|');
       const recs = S.btbRecords.filter(r => {
@@ -3610,6 +3626,26 @@ async function dropOn(ev, tech, day) {
 
 // ── Reihenfolge eines Tages neu vergeben ──
 // Alle Einträge einer Zelle in ihrer jetzigen Reihenfolge
+// Ein Auftrag gilt genau für die Woche, in die er gezogen wurde — er wiederholt
+// sich nicht. planned_kw/planned_year halten diese Woche fest. Aufträge, die vor
+// dieser Version eingeplant wurden, haben das Feld noch nicht; für die gilt
+// ersatzweise ihr eigener Termin, damit sie nicht aus dem Plan fallen.
+function jobWoche(job) {
+  if (!job) return null;
+  if (job.planned_kw && job.planned_year)
+    return { kw: job.planned_kw, jahr: job.planned_year };
+  if (job.due_kw && job.due_year) return { kw: job.due_kw, jahr: job.due_year };
+  if (job.due_date) { const d = new Date(job.due_date+'T12:00:00');
+    return { kw: getISOWeek(d), jahr: getISOYear(d) }; }
+  if (job.due_month) { const m = monatZuKW(job.due_month);
+    return m ? { kw: m.kw, jahr: m.year } : null; }
+  return null;
+}
+function jobInWoche(job, kwNum, kwYear) {
+  const w = jobWoche(job);
+  return !!w && w.kw === kwNum && w.jahr === kwYear;
+}
+
 function zellenItems(tech, day, kwStr) {
   const kwNum = parseInt(kwStr.split('-W')[1]), kwYear = parseInt(kwStr.split('-W')[0]);
   const aktiv = ['planned','done','missed'];
@@ -3623,7 +3659,7 @@ function zellenItems(tech, day, kwStr) {
         && r.assigned_technician===tech && r.assigned_day===day)
       out.push({ art:'btb', id:r.id, so:r.sort_order ?? 9999 });
   for (const j of S.jobs)
-    if (j.assigned_technician===tech && j.assigned_day===day)
+    if (j.assigned_technician===tech && j.assigned_day===day && jobInWoche(j, kwNum, kwYear))
       out.push({ art:'job', id:j.id, so:j.sort_order ?? 9999 });
   for (const n of S.notizen)
     if (n.kw===kwNum && n.jahr===kwYear && n.technician===tech && n.day===day)
@@ -3666,7 +3702,9 @@ async function verschiebeEintrag(art, id, tech, day, kwStr, pos) {
       einsortieren = { art:'wartung', id };
     } else if (art === 'job') {
       await apiFetch('wp_one_time_jobs?id=eq.'+id,'PATCH',
-        { assigned_technician:tech||null, assigned_day:day||null, status:'planned' });
+        { assigned_technician:tech||null, assigned_day:day||null, status:'planned',
+          planned_kw:parseInt(kwStr.split('-W')[1]),
+          planned_year:parseInt(kwStr.split('-W')[0]) });
       einsortieren = { art:'job', id };
     } else if (art === 'notiz') {
       await apiFetch('wp_notizen?id=eq.'+id,'PATCH',
@@ -4100,7 +4138,8 @@ async function planungZuruecksetzen() {
     await apiFetch('wp_notizen?id=not.is.null','DELETE');
     // Aufträge wieder offen und ohne Zuordnung
     await apiFetch('wp_one_time_jobs?status=neq.done','PATCH',
-      { assigned_technician:null, assigned_day:null, status:'open', sort_order:null });
+      { assigned_technician:null, assigned_day:null, status:'open', sort_order:null,
+        planned_kw:null, planned_year:null });
     // Für jeden Wartungsplan einen frischen offenen Eintrag
     for (const sc of S.schedules)
       await apiFetch('wp_maintenance_records','POST',
@@ -4233,9 +4272,10 @@ async function eintragNichtGeschafft() {
         { schedule_id:rec.schedule_id, customer_id:rec.customer_id, status:'open' });
       toast('↷ Nicht geschafft — steht wieder in der Liste');
     } else if (art === 'job') {
-      // Aufträge hängen an keiner Woche — sie gehen zurück in die Liste
+      // Zurück in die Liste — die geplante Woche fällt damit weg
       await apiFetch('wp_one_time_jobs?id=eq.'+id,'PATCH',
-        { assigned_technician:null, assigned_day:null, status:'open' });
+        { assigned_technician:null, assigned_day:null, status:'open',
+          planned_kw:null, planned_year:null });
       toast('↷ Auftrag zurück in die Liste');
     }
     await loadAll(); renderAll(); renderWochenplan();
