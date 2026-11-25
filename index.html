@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0284c7">
-<title>Wartungs Planung V4</title>
+<title>Wartungs Planung V6</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -307,7 +307,6 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 .pool-chip.c-kontrolle { border-left-color: #d97706; }
 .pool-chip.c-kombi   { border-left: 4px solid #ec4899; box-shadow: inset 5px 0 0 -1px #0ea5e9; background: #fffafc; }
 .pool-chip.c-kombig  { border-left: 4px solid #0f172a; box-shadow: inset 5px 0 0 -1px #0ea5e9; background: #f8fafc; }
-.pool-chip.c-offen   { border-left: 5px solid #dc2626; background: #fef2f2; }
 .pool-chip.c-kombik  { border-left: 4px solid #d97706; box-shadow: inset 5px 0 0 -1px #0ea5e9; background: #fffdf5; }
 .pt-kombig  { background: linear-gradient(90deg,#e2e8f0 0%,#e2e8f0 50%,#e0f2fe 50%,#e0f2fe 100%); color: #0f172a; border: 1px solid #94a3b8; }
 .pool-chip.c-rot     { border-left-color: var(--err); background: #fef2f2; }
@@ -402,6 +401,16 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
   color: #fff; cursor: pointer; transition: all .15s; white-space: nowrap;
 }
 .wp-subtab:hover { background: rgba(255,255,255,0.22); }
+/* Rechts über dem Freitag — also am rechten Rand der Plantabelle, nicht über
+   dem Pool. 530px Poolbreite + 14px Spalten-Abstand (siehe .wp-split). */
+.wp-nav { margin-left: auto; margin-right: 544px; display: flex; gap: 4px; flex: none; }
+@media (max-width: 1310px) { .wp-nav { margin-right: 0; } }
+.wp-pfeil {
+  background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 7px; padding: 5px 11px; font-size: 13px; font-weight: 700;
+  cursor: pointer; line-height: 1.2; }
+.wp-pfeil:hover { background: rgba(255,255,255,0.3); }
+.wp-heute { font-weight: 600; }
 .wp-subtab.active { background: #fff; color: var(--surface2); border-color: #fff; }
 
 /* ── WOCHENPLAN ── */
@@ -422,6 +431,13 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 .btn-chip.btn-auftr { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
 .btn-chip.btn-auftr.aus { background:#fef2f2; border-color:#fecaca; color:#b91c1c; font-weight:800; }
 .wp-item.c-notiz { background: #fefce8; border-left-color: #a16207; border-style: dashed; }
+/* Nicht beauftragt: die Typfarbe bleibt als Streifen stehen, daneben läuft
+   eine schraffierte Warnbahn. Voll rot ginge nicht — das heißt überfällig. */
+.wp-item.nicht-beauftragt, .pool-chip.nicht-beauftragt {
+  padding-left: 16px;
+  background-image: repeating-linear-gradient(45deg, #dc2626 0 4px, #fecaca 4px 8px);
+  background-size: 8px 100%; background-repeat: no-repeat; background-position: 4px 0; }
+.pool-chip.nicht-beauftragt { padding-left: 20px; }
 .wp-item.c-notiz .wp-item-name { font-weight: 700; color: #713f12; white-space: normal; }
 .wp-notiz-plus { display: block; width: 100%; margin-top: 4px; padding: 3px 6px; border-radius: 5px;
   border: 1px dashed #cbd5e1; background: transparent; color: #94a3b8; cursor: pointer;
@@ -608,7 +624,7 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 const LOCAL_MODE = true;
 const SB_URL = 'https://loekjdetgppmxnwnwxkm.supabase.co';
 const SB_KEY = 'sb_publishable_tvSCErTdFX0L1HKb2h9HPw_7Xid0a0A';
-const APP_VERSION = 'V4';
+const APP_VERSION = 'V6';
 const TECHNIKER = ['IS','AG','RG','BG','AS','JN','BT'];
 const PLAN_TECH = ['RG','AG','IS']; // Nur diese können Aufgaben zugewiesen bekommen
 const DAYS = ['Mo','Di','Mi','Do','Fr'];
@@ -630,7 +646,7 @@ let _toastTimer = null;
   <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:#0369a1;margin-bottom:4px;">
       Wartungs<span style="font-weight:400;color:#7dd3fc">Planung</span>
-      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V4</span>
+      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V6</span>
     </div>
     <div style="font-family:'Barlow',sans-serif;font-size:13px;color:#64748b;margin-bottom:22px;">Bitte anmelden um fortzufahren</div>
     <div style="margin-bottom:12px;">
@@ -652,7 +668,7 @@ let _toastTimer = null;
 
 <!-- HEADER -->
 <div class="header">
-  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V4</span></div>
+  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V6</span></div>
   <span id="headerUser" class="kuerzel-badge kb-IS" style="display:none"></span>
   <button class="header-btn" onclick="doLogout()">Logout</button>
   <button class="header-btn" onclick="openModal('modalKunde')">+ Kunde</button>
@@ -706,6 +722,12 @@ let _toastTimer = null;
       <button class="wp-subtab" id="wst-RG" onclick="setWPTab('RG',this)">RG</button>
       <button class="wp-subtab" id="wst-AG" onclick="setWPTab('AG',this)">AG</button>
       <button class="wp-subtab" id="wst-IS" onclick="setWPTab('IS',this)">IS</button>
+      <!-- Schnell zwischen den Wochen springen; die KW-Auswahl oben bleibt -->
+      <div class="wp-nav">
+        <button class="wp-pfeil" onclick="wocheWechseln(-1)" title="Eine Woche zurück">◀</button>
+        <button class="wp-pfeil wp-heute" onclick="wocheWechseln(0)" title="Zurück zur laufenden Woche">Heute</button>
+        <button class="wp-pfeil" onclick="wocheWechseln(1)" title="Eine Woche vor">▶</button>
+      </div>
     </div>
     <!-- Übersicht -->
     <div id="wp-view-alle">
@@ -1441,7 +1463,19 @@ function getISOWeek(d) { const t=new Date(d); t.setHours(0,0,0,0); t.setDate(t.g
 // z.B. noch in KW 53 von 2026 — ohne das rutschen Termine um ein ganzes Jahr weg.
 function getISOYear(d) { const t=new Date(d); t.setHours(0,0,0,0); t.setDate(t.getDate()+3-(t.getDay()+6)%7); return t.getFullYear(); }
 function getISOWeekString(d) { return getISOYear(d)+'-W'+String(getISOWeek(d)).padStart(2,'0'); }
-function parseKW(kw) { if(!kw||!kw.includes('-W'))return null; const[yr,wk]=kw.split('-W'); const s=new Date(parseInt(yr),0,1+(parseInt(wk)-1)*7); const dow=s.getDay(); const mon=new Date(s); mon.setDate(s.getDate()-(dow===0?6:dow-1)); return mon; }
+// Montag einer Kalenderwoche. Nach ISO 8601: KW1 ist die Woche, in der der
+// 4. Januar liegt — NICHT die Woche mit dem 1. Januar. Beides fällt nur
+// auseinander, wenn der 1.1. auf Fr/Sa/So fällt (2027, 2028, 2033 ...);
+// dort lag die alte Rechnung eine Woche zu früh und passte damit nicht mehr
+// zu getISOWeek(), das richtig nach dem Donnerstag geht.
+function parseKW(kw) {
+  if(!kw||!kw.includes('-W'))return null;
+  const [yr,wk]=kw.split('-W');
+  const d=new Date(parseInt(yr),0,4);
+  const dow=d.getDay()||7;
+  d.setDate(d.getDate()-(dow-1)+(parseInt(wk)-1)*7);
+  return d;
+}
 
 // ═══════════════════════════════════════════════
 // STATUS LOGIC
@@ -1764,7 +1798,7 @@ function buildKombiChip({btbList, btbStatuses, domStatus, wartSched, cust}) {
                  Wochenplan auf BTB umstellen statt hier zusätzlich einzuplanen.</div>`
             : `<button class="btn-chip btn-plan" onclick="openPlanBTBModal('${btb.id}','${esc(cust.name||'')}',${i})">📅 BTB einplanen</button>`)
         }
-        ${beauftragtBtn('wp_btb_schedules', btb, 'BTB')}
+        ${beauftragtBtn('wp_btb_schedules', btb, btb.interval_weeks===4?'Kontrolle':'BTB')}
         <button class="btn-chip btn-tour" onclick="openTourZuordnen('${btb.id}')">🚐 ${tour?'Tour ändern':'Tour'}</button>
         <button class="btn-chip btn-note" onclick="openKommentar('btb','${btb.id}')">💬</button>
         <button class="btn-chip btn-del" onclick="deleteBTB('${btb.id}')">🗑</button>
@@ -2006,17 +2040,16 @@ function wpItemHTML(it) {
   const drag  = (it.art && !fertig) ? `draggable="true" ondragstart="dragStart(event,'${it.art}','${it.id}')" ondragend="dragEnd(event)"` : '';
   const klick = it.art ? `onclick="openVerschieben('${it.art}','${it.id}')"` : '';
 
-  const klassen = ['wp-item', it.typKlasse ? 'c-'+it.typKlasse : '',
+  const klassen = ['wp-item', it.typKlasse ? 'c-'+it.typKlasse : '', it.offen ? 'nicht-beauftragt' : '',
                    it.ergebnis==='done' ? 'ist-done' : it.ergebnis==='missed' ? 'ist-missed' : ''].filter(Boolean).join(' ');
   const badge = it.ergebnis==='done'   ? '<span class="wp-ergebnis wp-erg-done">ERLEDIGT</span>'
               : it.ergebnis==='missed' ? '<span class="wp-ergebnis wp-erg-missed">NICHT GESCHAFFT</span>' : '';
-  // Nicht beauftragt schlägt alles: der ganze Streifen wird rot. Sonst zeigt
-  // ein zweifarbiger Streifen, dass beim Kunden beides ansteht.
-  const stil = it.offen
-    ? 'cursor:pointer;border-left:5px solid #dc2626;'
-    : (it.kombiFarbe
-        ? `cursor:pointer;border-left:4px solid ${esc(it.kombiFarbe)};box-shadow:inset 5px 0 0 -1px #0ea5e9;`
-        : 'cursor:pointer;');
+  // Nicht beauftragt bekommt die schraffierte Warnbahn aus der CSS-Klasse —
+  // die Typfarbe bleibt daneben stehen. Ein voll roter Streifen wäre von
+  // "überfällig" nicht zu unterscheiden.
+  const stil = it.kombiFarbe
+    ? `cursor:pointer;border-left:4px solid ${esc(it.kombiFarbe)};box-shadow:inset 5px 0 0 -1px #0ea5e9;`
+    : 'cursor:pointer;';
   const tip = it.offen ? 'Noch nicht beauftragt — im Kundentab freigeben'
             : it.kombiFarbe ? 'BTB und Wartung stehen an — antippen zum Umstellen'
             : (fertig ? 'Antippen zum Ansehen' : 'Ziehen oder antippen');
@@ -2045,6 +2078,20 @@ function setWPTab(name, el) {
   document.getElementById('wp-view-tech').classList.toggle('hidden', name === 'alle');
   if (name !== 'alle') renderWPTech(name);
   else setTimeout(poolHoeheAnpassen, 0);
+}
+
+// Eine Woche vor oder zurück — 0 springt auf die laufende Woche.
+// Die KW-Auswahl bleibt die Quelle, sie wird nur mitgesetzt.
+function wocheWechseln(schritt) {
+  const feld = document.getElementById('wpKW');
+  let ziel;
+  if (schritt === 0) ziel = today();
+  else {
+    const mo = parseKW(feld.value) || today();
+    ziel = new Date(mo.getTime() + schritt*7*86400000);
+  }
+  feld.value = getISOWeekString(ziel);
+  onKWChange();
 }
 
 function onKWChange() {
@@ -2960,11 +3007,14 @@ async function toggleBeauftragt(tabelle, id) {
 // Knopf für den Kundenchip
 function beauftragtBtn(tabelle, plan, was) {
   const an = istBeauftragt(plan);
+  // Hat ein Kunde BTB und Wartung, stehen hier zwei dieser Knöpfe. Deshalb
+  // nennt jeder Knopf, wofür er gilt — sonst drückt man den falschen und
+  // wundert sich, dass sich im Wochenplan nichts ändert.
   return `<button class="btn-chip btn-auftr${an?'':' aus'}"
     onclick="toggleBeauftragt('${tabelle}','${plan.id}')"
-    title="${an ? was+' ist beauftragt — antippen macht den Streifen im Wochenplan rot'
-                : was+' ist NICHT beauftragt — im Wochenplan rot markiert'}">
-    ${an ? '📝 beauftragt' : '⛔ nicht beauftragt'}</button>`;
+    title="${an ? was+' ist beauftragt — antippen markiert sie im Wochenplan als nicht beauftragt'
+                : was+' ist NICHT beauftragt — im Wochenplan schraffiert'}">
+    ${an ? '📝 '+was+' beauftragt' : '⛔ '+was+' nicht beauftragt'}</button>`;
 }
 
 // Farbe des BTB-Anteils: monatliche Kontrolle amber, sonst nach Rhythmus
@@ -3121,7 +3171,7 @@ function poolItems() {
     items.push({ art:'sched', id:sched.id, name:cust.name||'?', nebenBTB:false,
       optKW: opt ? opt.kw : null,
       typ: (istBeauftragt(sched)?'':'⛔ ') + (nr ? 'Wartung '+nr.text : 'Wartung'),
-      typKlasse: istBeauftragt(sched) ? 'wartung' : 'offen',
+      typKlasse:'wartung', offen: !istBeauftragt(sched),
       // Bei BTB-Kunden zeigt der Chip die BTB-Woche, in der er mitläuft,
       // nicht die rechnerisch optimale der Wartung allein.
       sub: fmtMonth(st.nextDate) + (amBTB ? ' · KW '+ziel.kw+' (mit BTB)' : (opt ? ' · KW '+opt.kw : '')),
@@ -3149,6 +3199,7 @@ function poolItems() {
     const tourB  = btb.tour_id ? getTour(btb.tour_id) : null;
     items.push({ art:'btbsched', id:btb.id, name:cust.name||'?',
       typ: (istBeauftragt(btb)?'':'⛔ ') + (btb.interval_weeks===4 ? 'Kontrolle' : 'BTB') + btbLabel(btb),
+      offen: !istBeauftragt(btb),
       typKlasse: btb.interval_weeks===4 ? 'kontrolle' : (gerade ? 'btbg' : 'btb'), gerade,
       btbLabelTxt: btbLabel(btb),
       // Die monatliche Kontrolle liest sich wie ein Wartungschip: Zielmonat und
@@ -3390,7 +3441,7 @@ function poolBlockHTML(liste) {
 function poolChipHTML(it) {
   const dringend = ['red','orange'].includes(it.farbe) ? ' c-rot' : '';
   const stattBTB = it.nebenBTB ? '<span class="statt-btb" title="Beim Kunden ist diese Woche BTB eingeplant — die Wartung ginge stattdessen auch">statt BTB</span>' : '';
-  return `<div class="pool-chip c-${it.typKlasse}${dringend}"
+  return `<div class="pool-chip c-${it.typKlasse}${dringend}${it.offen?' nicht-beauftragt':''}"
        draggable="true" ondragstart="dragStart(event,'${it.art}','${it.id}')" ondragend="dragEnd(event)"
        onclick="openVerschieben('${it.art}','${it.id}')" title="In den Plan ziehen oder antippen">
     <span class="pool-chip-name">${esc(it.name)}</span>

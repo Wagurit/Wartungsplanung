@@ -1,4 +1,4 @@
-WARTUNGS PLANUNG — V4
+WARTUNGS PLANUNG — V6
 =====================
 Stand: 25.11.2026
 Supabase-Projekt: RKW-Service (loekjdetgppmxnwnwxkm)
@@ -38,7 +38,7 @@ HOCHLADEN
 Alle Dateien in denselben Ordner legen — die Pfade im HTML sind relativ,
 es ist egal, in welchem Unterordner die App liegt. Weil die App
 index.html heisst, genuegt der Ordnerlink:
-  https://<deine-seite>/wartungsplanung_V4/
+  https://<deine-seite>/wartungsplanung_V6/
 
 Die beiden Textdateien (diese hier und die SQL) sind bei GitHub Pages
 oeffentlich abrufbar. Geheim ist daran nichts, aber wenn du den
@@ -53,8 +53,8 @@ BEI JEDER NEUEN VERSION
 -----------------------
 Drei Stellen hochzählen, sonst merken die Geräte das Update nicht:
 
-  1. sw_wartungsplanung.js   const CACHE = 'wartungsplanung-v4'
-  2. index.html              const APP_VERSION = 'V4'  (eine Stelle)
+  1. sw_wartungsplanung.js   const CACHE = 'wartungsplanung-v6'
+  2. index.html              const APP_VERSION = 'V6'  (eine Stelle)
   3. index.html              <title>, der Zusatz neben dem Logo und die
                              Zahl auf dem Anmeldebildschirm (drei Stellen)
   4. der Name des Ordners und der ZIP
