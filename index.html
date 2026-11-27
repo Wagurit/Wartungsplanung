@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0284c7">
-<title>Wartungs Planung V8</title>
+<title>Wartungs Planung V9</title>
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="./icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -624,7 +624,7 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
 const LOCAL_MODE = true;
 const SB_URL = 'https://loekjdetgppmxnwnwxkm.supabase.co';
 const SB_KEY = 'sb_publishable_tvSCErTdFX0L1HKb2h9HPw_7Xid0a0A';
-const APP_VERSION = 'V8';
+const APP_VERSION = 'V9';
 const TECHNIKER = ['IS','AG','RG','BG','AS','JN','BT'];
 const PLAN_TECH = ['RG','AG','IS']; // Nur diese können Aufgaben zugewiesen bekommen
 const DAYS = ['Mo','Di','Mi','Do','Fr'];
@@ -646,7 +646,7 @@ let _toastTimer = null;
   <div style="background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:#0369a1;margin-bottom:4px;">
       Wartungs<span style="font-weight:400;color:#7dd3fc">Planung</span>
-      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V8</span>
+      <span style="font-size:13px;color:#94a3b8;font-weight:400;font-family:'DM Mono',monospace;margin-left:6px;">V9</span>
     </div>
     <div style="font-family:'Barlow',sans-serif;font-size:13px;color:#64748b;margin-bottom:22px;">Bitte anmelden um fortzufahren</div>
     <div style="margin-bottom:12px;">
@@ -668,7 +668,7 @@ let _toastTimer = null;
 
 <!-- HEADER -->
 <div class="header">
-  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V8</span></div>
+  <div class="logo">Wartungs<span>Planung</span> <span class="logo-ver">V9</span></div>
   <span id="headerUser" class="kuerzel-badge kb-IS" style="display:none"></span>
   <button class="header-btn" onclick="doLogout()">Logout</button>
   <button class="header-btn" onclick="openModal('modalKunde')">+ Kunde</button>
@@ -1294,7 +1294,7 @@ const LADE_PLAN = [
   { tab:'wp_maintenance_records',   feld:'records',    q:'select=*' },
   { tab:'wp_one_time_jobs',         feld:'jobs',       q:'select=*' },
   { tab:'wp_comments',              feld:'comments',   q:'select=*' },
-  { tab:'wp_btb_schedules',         feld:'btbs',       q:'active=eq.true&select=*' },
+  { tab:'wp_btb_schedules',         feld:'btbs',       q:'select=*' },
   { tab:'wp_btb_records',           feld:'btbRecords', q:'status=neq.archived&select=*' },
   { tab:'wp_touren',                feld:'touren',     q:'order=name.asc&select=*' },
   { tab:'wp_notizen',               feld:'notizen',    q:'select=*' }
@@ -1326,6 +1326,12 @@ async function loadAll(alles = false) {
     if (plan.some(e => e.feld === 'schedules')) {
       S.schedulesAlle = S.schedules;
       S.schedules = S.schedules.filter(sc => sc.active !== false);
+    }
+    // Dasselbe für die BTB: archivierte bleiben greifbar, damit man sie
+    // zurückholen kann, tauchen aber nirgends in der Planung auf.
+    if (plan.some(e => e.feld === 'btbs')) {
+      S.btbsAlle = S.btbs;
+      S.btbs = S.btbs.filter(b => b.active !== false);
     }
     _jeGeladen = true;
   } catch(e) {
@@ -1752,7 +1758,10 @@ function kundenTags(cust) {
           cust.region_nr && `🗺 R${esc(cust.region_nr)}`].filter(Boolean);
 }
 function kundenAktionen(cust) {
+  const archiviert = (S.btbsAlle||[]).some(b => b.customer_id===cust.id && b.active===false);
   return `<button class="btn-chip btn-btb" onclick="openAddBTBModal('${cust.id}')">+ Betriebstagebuch</button>
+    ${archiviert ? `<button class="btn-chip btn-btb" onclick="restoreBTB('${cust.id}')"
+      title="Ein archiviertes Betriebstagebuch dieses Kunden wieder einschalten">♻ BTB zurückholen</button>` : ''}
     <button class="btn-chip btn-anm${cust.anmeldung_noetig?' an':''}" onclick="toggleAnmeldung('${cust.id}')" title="Muss beim Kunden angemeldet werden?">${cust.anmeldung_noetig?'🔔 Anmeldung nötig':'🔔 Anmeldung'}</button>
     <button class="btn-chip btn-winter${cust.winterbetrieb?' an':''}" onclick="toggleWinter('${cust.id}')" title="Kunde ruht im Winter">${cust.winterbetrieb?'❄ Winterbetrieb AN':'❄ Winterbetrieb'}</button>
     <button class="btn-chip btn-edit" onclick="openEditKunde('${cust.id}')">✏️ Bearbeiten</button>
@@ -1811,7 +1820,7 @@ function buildKombiChip({btbList, btbStatuses, domStatus, wartSched, cust}) {
         ${beauftragtBtn('wp_btb_schedules', btb, btb.interval_weeks===4?'Kontrolle':'BTB')}
         <button class="btn-chip btn-tour" onclick="openTourZuordnen('${btb.id}')">🚐 ${tour?'Tour ändern':'Tour'}</button>
         <button class="btn-chip btn-note" onclick="openKommentar('btb','${btb.id}')">💬</button>
-        <button class="btn-chip btn-del" onclick="deleteBTB('${btb.id}')">🗑</button>
+        <button class="btn-chip btn-del" onclick="deleteBTB('${btb.id}')" title="Dieses Betriebstagebuch archivieren — umkehrbar">🗑 BTB</button>
       </div>
     </div>`;
   }).join('<hr class="btb-divider">');
@@ -2202,7 +2211,7 @@ async function saveKunde() {
     const year=parseInt(firstMonth.split('-')[0]);
     if (year<2026||year>2035) { toast('❌ Jahr muss zwischen 2026 und 2035 liegen'); return; }
   }
-  let stillgelegt = false;
+  let stillgelegt = false, uebernommen = false;
   try {
     let custId=id;
     if (id) { await apiFetch(`wp_customers?id=eq.${id}`,'PATCH',{name,plz,region_nr:region||null,notes}); }
@@ -2225,9 +2234,26 @@ async function saveKunde() {
     } else if (ex && ex.active !== false) {
       // Stilllegen: offene und geplante Einträge weg, erledigte bleiben stehen
       for (const r of S.records.filter(r=>r.schedule_id===ex.id && r.status!=='done')) {
+        // Ein Kombi-Chip im Wochenplan ist nur EIN Eintrag — entweder BTB oder
+        // Wartung. Stand dort die Wartung und beim Kunden ist ein BTB offen,
+        // übernimmt das BTB denselben Platz. Sonst wäre mit der Wartung auch
+        // der eingeplante Besuch verschwunden.
+        if (r.status==='planned' && r.assigned_technician && String(r.planned_kw||'').includes('-W')) {
+          const k = parseInt(String(r.planned_kw).split('-W')[1]);
+          const j = parseInt(String(r.planned_kw).split('-W')[0]);
+          const btb = offenesBTB(custId, k, j);
+          if (btb && !S.btbRecords.some(x => x.btb_schedule_id===btb.id && x.status==='planned')) {
+            await apiFetch('wp_btb_records','POST',
+              { btb_schedule_id:btb.id, customer_id:custId, planned_kw:k, planned_year:j,
+                assigned_technician:r.assigned_technician, assigned_day:r.assigned_day,
+                status:'planned', sort_order:r.sort_order ?? null });
+            uebernommen = true;
+          }
+        }
         await apiFetch(`wp_comments?ref_id=eq.${r.id}`,'DELETE');
         await apiFetch(`wp_maintenance_records?id=eq.${r.id}`,'DELETE');
       }
+
       await apiFetch(`wp_maintenance_schedules?id=eq.${ex.id}`,'PATCH',{active:false});
       stillgelegt = true;
     }
@@ -2240,7 +2266,8 @@ async function saveKunde() {
     ['kundeName','kundePLZ','kundeNotiz','kundeErsterMonat'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('kundeRegion').value=''; document.getElementById('kundeFreq').value='';
     await loadAll(); renderAll(); renderKunden();
-    toast(stillgelegt   ? '✅ Kunde aktualisiert · Wartung stillgelegt'
+    toast(uebernommen   ? '✅ Wartung stillgelegt · BTB bleibt im Wochenplan'
+        : stillgelegt   ? '✅ Kunde aktualisiert · Wartung stillgelegt'
         : btbVerschoben ? '✅ Kunde aktualisiert · BTB verschoben'
         : (id?'✅ Kunde aktualisiert':'✅ Kunde angelegt'));
   } catch(e) { toast('❌ '+e.message); }
@@ -4465,13 +4492,37 @@ async function unplanBTB(recId) {
 }
 
 async function deleteBTB(btbId) {
-  if (!confirm('BTB-Plan löschen und archivieren?')) return;
+  const btb  = S.btbs.find(b=>b.id===btbId);
+  const cust = btb ? getCust(btb.customer_id) : {};
+  const art  = btb && btb.interval_weeks===4 ? 'Monatliche Kontrolle' : 'Betriebstagebuch';
+  if (!confirm(art+' bei "'+(cust.name||'?')+'" archivieren?\n\n'
+             + 'Es verschwindet aus der Planung und aus dem Wochenplan, auch '
+             + 'bereits erledigte Einträge.\n\n'
+             + 'Rückgängig: der Knopf "♻ BTB zurückholen" am Kundenchip.')) return;
   try {
-    const recs = S.btbRecords.filter(r=>r.btb_schedule_id===btbId);
-    for (const r of recs) await apiFetch('wp_btb_records?id=eq.'+r.id,'PATCH',{status:'archived'});
+    // Die Einträge bleiben, wie sie sind — ohne aktiven Plan zeigt sie ohnehin
+    // niemand an. Nur so kommt beim Zurückholen alles vollständig wieder,
+    // inklusive der erledigten Besuche.
     await apiFetch('wp_btb_schedules?id=eq.'+btbId,'PATCH',{active:false});
     await loadAll(); renderAll(); renderKunden();
-    toast('✅ BTB archiviert');
+    toast('✅ BTB archiviert · über "♻ BTB zurückholen" am Kunden wieder da');
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+// Archiviertes BTB wieder einschalten. Einträge, die eine frühere Version beim
+// Archivieren auf "archived" gesetzt hat, werden dabei mit zurückgeholt.
+async function restoreBTB(custId) {
+  const archiviert = (S.btbsAlle||[]).filter(b => b.customer_id===custId && b.active===false);
+  if (!archiviert.length) return;
+  try {
+    for (const b of archiviert) {
+      await apiFetch('wp_btb_schedules?id=eq.'+b.id,'PATCH',{active:true});
+      const alt = await apiFetch('wp_btb_records?btb_schedule_id=eq.'+b.id+'&status=eq.archived&select=*');
+      for (const r of (alt||[]))
+        await apiFetch('wp_btb_records?id=eq.'+r.id,'PATCH',{ status: r.done_kw ? 'done' : 'planned' });
+    }
+    await loadAll(); renderAll(); renderKunden();
+    toast('✅ BTB zurückgeholt');
   } catch(e) { toast('❌ '+e.message); }
 }
 

@@ -1,6 +1,6 @@
-WARTUNGS PLANUNG — V8
+WARTUNGS PLANUNG — V9
 
-NEU IN V8 — an Supabase ist NICHTS zu tun.
+NEU IN V9 — an Supabase ist NICHTS zu tun.
   (Die Spalte wp_maintenance_schedules.active gibt es schon.)
 
   Falls das Update aus V7 noch nicht gelaufen ist, einmal ausführen:
@@ -47,7 +47,7 @@ HOCHLADEN
 Alle Dateien in denselben Ordner legen — die Pfade im HTML sind relativ,
 es ist egal, in welchem Unterordner die App liegt. Weil die App
 index.html heisst, genuegt der Ordnerlink:
-  https://<deine-seite>/wartungsplanung_V8/
+  https://<deine-seite>/wartungsplanung_V9/
 
 Die beiden Textdateien (diese hier und die SQL) sind bei GitHub Pages
 oeffentlich abrufbar. Geheim ist daran nichts, aber wenn du den
@@ -62,8 +62,8 @@ BEI JEDER NEUEN VERSION
 -----------------------
 Drei Stellen hochzählen, sonst merken die Geräte das Update nicht:
 
-  1. sw_wartungsplanung.js   const CACHE = 'wartungsplanung-v8'
-  2. index.html              const APP_VERSION = 'V8'  (eine Stelle)
+  1. sw_wartungsplanung.js   const CACHE = 'wartungsplanung-v9'
+  2. index.html              const APP_VERSION = 'V9'  (eine Stelle)
   3. index.html              <title>, der Zusatz neben dem Logo und die
                              Zahl auf dem Anmeldebildschirm (drei Stellen)
   4. der Name des Ordners und der ZIP
