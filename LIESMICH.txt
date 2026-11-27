@@ -1,9 +1,13 @@
-WARTUNGS PLANUNG — V7
+WARTUNGS PLANUNG — V8
 
-NEU IN V7 — vor dem Start einmal in Supabase ausführen:
+NEU IN V8 — an Supabase ist NICHTS zu tun.
+  (Die Spalte wp_maintenance_schedules.active gibt es schon.)
+
+  Falls das Update aus V7 noch nicht gelaufen ist, einmal ausführen:
   wartungsplanung_update_V7.sql
-  (zwei neue Spalten an wp_one_time_jobs: planned_kw, planned_year.
-   Ohne sie stand ein eingeplanter Auftrag in jeder folgenden Woche.)
+  (zwei Spalten an wp_one_time_jobs: planned_kw, planned_year. Ohne sie
+   steht ein eingeplanter Auftrag in jeder folgenden Woche. Das Skript
+   ist gefahrlos mehrfach ausführbar.)
 =====================
 Stand: 25.11.2026
 Supabase-Projekt: RKW-Service (loekjdetgppmxnwnwxkm)
@@ -43,7 +47,7 @@ HOCHLADEN
 Alle Dateien in denselben Ordner legen — die Pfade im HTML sind relativ,
 es ist egal, in welchem Unterordner die App liegt. Weil die App
 index.html heisst, genuegt der Ordnerlink:
-  https://<deine-seite>/wartungsplanung_V7/
+  https://<deine-seite>/wartungsplanung_V8/
 
 Die beiden Textdateien (diese hier und die SQL) sind bei GitHub Pages
 oeffentlich abrufbar. Geheim ist daran nichts, aber wenn du den
@@ -58,8 +62,8 @@ BEI JEDER NEUEN VERSION
 -----------------------
 Drei Stellen hochzählen, sonst merken die Geräte das Update nicht:
 
-  1. sw_wartungsplanung.js   const CACHE = 'wartungsplanung-v7'
-  2. index.html              const APP_VERSION = 'V7'  (eine Stelle)
+  1. sw_wartungsplanung.js   const CACHE = 'wartungsplanung-v8'
+  2. index.html              const APP_VERSION = 'V8'  (eine Stelle)
   3. index.html              <title>, der Zusatz neben dem Logo und die
                              Zahl auf dem Anmeldebildschirm (drei Stellen)
   4. der Name des Ordners und der ZIP
